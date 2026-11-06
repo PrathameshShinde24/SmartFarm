@@ -1,0 +1,33 @@
+.three-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.list-row {
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+a.list-row:hover {
+  color: var(--primary);
+}
+
+.weather-temp {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .three-columns {
+    grid-template-columns: 1fr;
+  }
+}

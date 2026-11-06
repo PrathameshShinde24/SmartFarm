@@ -1,0 +1,14 @@
+<header class="topbar">
+  <button type="button" class="icon-btn menu-btn" aria-label="Open menu" (click)="menuClick.emit()">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+  <h1>{{ title() }}</h1>
+  <div class="farm-info">
+    <strong>{{ settings().farmName }}</strong>
+    <span>{{ settings().ownerName }}</span>
+  </div>
+  <button type="button" class="btn btn-outline btn-sm" (click)="logout.emit()">
+    <span class="material-symbols-outlined">logout</span>
+    Logout
+  </button>
+</header>

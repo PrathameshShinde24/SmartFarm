@@ -1,0 +1,155 @@
+<app-page-header title="Crops">
+  <button class="btn btn-primary" (click)="openAddForm()">Add Crop</button>
+</app-page-header>
+
+<div class="toolbar">
+  <select #stageBox aria-label="Filter by stage" (change)="stageFilter.set(stageBox.value)">
+    <option value="All">All stages</option>
+    @for (stage of stages; track stage) {
+      <option [value]="stage">{{ stage }}</option>
+    }
+  </select>
+  <select #healthBox aria-label="Filter by health" (change)="healthFilter.set(healthBox.value)">
+    <option value="All">All health</option>
+    @for (health of healthOptions; track health) {
+      <option [value]="health">{{ health }}</option>
+    }
+  </select>
+</div>
+
+@if (filteredCrops().length > 0) {
+  <div class="card-grid">
+    @for (crop of filteredCrops(); track crop.id) {
+      <div class="card crop-card">
+        <div class="crop-header">
+          <div>
+            <h3>{{ crop.crop }}</h3>
+            <p class="text-muted">{{ crop.variety }} · {{ fieldService.getName(crop.fieldId) }}</p>
+          </div>
+          <app-status-badge [label]="crop.health" />
+        </div>
+
+        <div class="progress-label">
+          <span>Growth</span>
+          <span>{{ cropService.getProgress(crop) }}%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" [style.width.%]="cropService.getProgress(crop)"></div>
+        </div>
+
+        <div class="crop-details">
+          <div><span>Stage</span>{{ crop.stage }}</div>
+          <div><span>Expected yield</span>{{ crop.expectedYield }} quintals</div>
+          <div>
+            <span>Harvest</span>
+            {{ crop.harvestDate | date }}
+            @if (crop.stage !== 'Harvested') {
+              <small class="days-left">({{ crop.harvestDate | daysLeft }})</small>
+            }
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn btn-outline btn-sm" (click)="openEditForm(crop)">Edit</button>
+          <button class="btn btn-outline btn-sm btn-delete" (click)="cropToDelete.set(crop)">
+            Delete
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="card">
+    <app-empty-state
+      icon="potted_plant"
+      title="No crops found"
+      message="Try changing the filters."
+    />
+  </div>
+}
+
+@if (showForm()) {
+  <app-modal [title]="editId() ? 'Edit Crop' : 'Add Crop'" (close)="showForm.set(false)">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body form-grid">
+        <div class="form-group">
+          <label for="crop">Crop</label>
+          <select id="crop" formControlName="crop">
+            <option value="">Select crop</option>
+            @for (name of cropNames; track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+          @if (form.controls.crop.touched && form.controls.crop.invalid) {
+            <small class="error">Please select a crop.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="variety">Variety</label>
+          <input id="variety" formControlName="variety" />
+          @if (form.controls.variety.touched && form.controls.variety.invalid) {
+            <small class="error">Variety is required.</small>
+          }
+        </div>
+        <div class="form-group full">
+          <label for="fieldId">Field</label>
+          <select id="fieldId" formControlName="fieldId">
+            <option value="">Select field</option>
+            @for (field of fieldService.fields(); track field.id) {
+              <option [value]="field.id">{{ field.name }}</option>
+            }
+          </select>
+          @if (form.controls.fieldId.touched && form.controls.fieldId.invalid) {
+            <small class="error">Please select a field.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="sowingDate">Sowing Date</label>
+          <input id="sowingDate" type="date" formControlName="sowingDate" />
+        </div>
+        <div class="form-group">
+          <label for="harvestDate">Expected Harvest</label>
+          <input id="harvestDate" type="date" formControlName="harvestDate" />
+          @if (form.hasError('harvestBeforeSowing')) {
+            <small class="error">Harvest date must be after sowing date.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="stage">Stage</label>
+          <select id="stage" formControlName="stage">
+            @for (stage of stages; track stage) {
+              <option [value]="stage">{{ stage }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="health">Health</label>
+          <select id="health" formControlName="health">
+            @for (health of healthOptions; track health) {
+              <option [value]="health">{{ health }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="expectedYield">Expected Yield (quintals)</label>
+          <input id="expectedYield" type="number" formControlName="expectedYield" />
+          @if (form.controls.expectedYield.touched && form.controls.expectedYield.invalid) {
+            <small class="error">Yield must be at least 1 quintal.</small>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (cropToDelete(); as crop) {
+  <app-confirm-dialog
+    [message]="'Delete the ' + crop.crop + ' crop cycle?'"
+    (confirm)="deleteCrop()"
+    (cancel)="cropToDelete.set(null)"
+  />
+}

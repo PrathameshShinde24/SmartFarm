@@ -1,0 +1,107 @@
+<app-page-header title="Workers">
+  <button class="btn btn-primary" (click)="openAddForm()">Add Worker</button>
+</app-page-header>
+
+<div class="card">
+  @if (workerService.workers().length > 0) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Phone</th>
+            <th>Daily Wage</th>
+            <th>Open Tasks</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (worker of workerService.workers(); track worker.id) {
+            <tr>
+              <td>
+                <strong>{{ worker.name }}</strong>
+              </td>
+              <td>{{ worker.role }}</td>
+              <td>{{ worker.phone }}</td>
+              <td>{{ worker.dailyWage | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+              <td>{{ taskService.openTaskCount(worker.id) }}</td>
+              <td><app-status-badge [label]="worker.status" /></td>
+              <td class="actions">
+                <button class="btn btn-outline btn-sm" (click)="openEditForm(worker)">Edit</button>
+                <button
+                  class="btn btn-outline btn-sm btn-delete"
+                  (click)="workerToDelete.set(worker)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state icon="groups" title="No workers yet" message="Add your first worker." />
+  }
+</div>
+
+@if (showForm()) {
+  <app-modal [title]="editId() ? 'Edit Worker' : 'Add Worker'" (close)="showForm.set(false)">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body form-grid">
+        <div class="form-group full">
+          <label for="name">Name</label>
+          <input id="name" formControlName="name" />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <small class="error">Name is required (minimum 3 characters).</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" formControlName="role">
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" formControlName="status">
+            @for (status of statuses; track status) {
+              <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input id="phone" type="tel" maxlength="10" formControlName="phone" />
+          @if (form.controls.phone.touched && form.controls.phone.invalid) {
+            <small class="error">Enter a valid 10 digit phone number.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="dailyWage">Daily Wage (₹)</label>
+          <input id="dailyWage" type="number" formControlName="dailyWage" />
+          @if (form.controls.dailyWage.touched && form.controls.dailyWage.invalid) {
+            <small class="error">Daily wage must be at least ₹100.</small>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (workerToDelete(); as worker) {
+  <app-confirm-dialog
+    [message]="'Remove ' + worker.name + ' from workers?'"
+    confirmText="Remove"
+    (confirm)="deleteWorker()"
+    (cancel)="workerToDelete.set(null)"
+  />
+}

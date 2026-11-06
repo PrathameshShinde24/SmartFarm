@@ -1,0 +1,159 @@
+<app-page-header title="Finance">
+  <button class="btn btn-primary" (click)="openAddForm()">Add Transaction</button>
+</app-page-header>
+
+<div class="toolbar">
+  <select #monthBox aria-label="Select month" (change)="selectedMonth.set(monthBox.value)">
+    @for (month of months; track month.value) {
+      <option [value]="month.value">{{ month.label }}</option>
+    }
+  </select>
+  <select #typeBox aria-label="Filter by type" (change)="typeFilter.set(typeBox.value)">
+    <option value="All">All types</option>
+    @for (type of types; track type) {
+      <option [value]="type">{{ type }}</option>
+    }
+  </select>
+</div>
+
+<div class="stats-grid">
+  <app-stat-card
+    label="Total Income"
+    [value]="(summary().income | currency: 'INR' : 'symbol' : '1.0-0') ?? ''"
+  />
+  <app-stat-card
+    label="Total Expenses"
+    [value]="(summary().expense | currency: 'INR' : 'symbol' : '1.0-0') ?? ''"
+    color="red"
+  />
+  <app-stat-card
+    label="Net Profit"
+    [value]="(summary().profit | currency: 'INR' : 'symbol' : '1.0-0') ?? ''"
+    [color]="summary().profit >= 0 ? 'green' : 'red'"
+  />
+</div>
+
+<div class="two-columns">
+  <div class="card">
+    <h3 class="card-title">Transactions</h3>
+    @if (filteredTransactions().length > 0) {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Field</th>
+              <th>Note</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of filteredTransactions(); track t.id) {
+              <tr>
+                <td>{{ t.date | date }}</td>
+                <td><app-status-badge [label]="t.type" /></td>
+                <td>{{ t.category }}</td>
+                <td>{{ t.fieldId ? fieldService.getName(t.fieldId) : 'General' }}</td>
+                <td class="text-muted">{{ t.note }}</td>
+                <td
+                  [class.text-success]="t.type === 'Income'"
+                  [class.text-danger]="t.type === 'Expense'"
+                >
+                  <strong>{{ t.amount | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+                </td>
+                <td class="actions">
+                  <button class="btn btn-outline btn-sm" (click)="openEditForm(t)">Edit</button>
+                  <button
+                    class="btn btn-outline btn-sm btn-delete"
+                    (click)="transactionToDelete.set(t)"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <app-empty-state title="No transactions this month" />
+    }
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">Expenses by Category</h3>
+    <div class="chart-box">
+      <canvas #chartCanvas></canvas>
+    </div>
+  </div>
+</div>
+
+@if (showForm()) {
+  <app-modal
+    [title]="editId() ? 'Edit Transaction' : 'Add Transaction'"
+    (close)="showForm.set(false)"
+  >
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body form-grid">
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" formControlName="type">
+            @for (type of types; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" formControlName="category">
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount (₹)</label>
+          <input id="amount" type="number" formControlName="amount" />
+          @if (form.controls.amount.touched && form.controls.amount.invalid) {
+            <small class="error">Amount must be at least ₹1.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input id="date" type="date" formControlName="date" />
+          @if (form.controls.date.touched && form.controls.date.invalid) {
+            <small class="error">Date is required.</small>
+          }
+        </div>
+        <div class="form-group full">
+          <label for="fieldId">Field (optional)</label>
+          <select id="fieldId" formControlName="fieldId">
+            <option value="">General</option>
+            @for (field of fieldService.fields(); track field.id) {
+              <option [value]="field.id">{{ field.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="note">Note</label>
+          <input id="note" formControlName="note" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (transactionToDelete()) {
+  <app-confirm-dialog
+    message="Delete this transaction?"
+    (confirm)="deleteTransaction()"
+    (cancel)="transactionToDelete.set(null)"
+  />
+}

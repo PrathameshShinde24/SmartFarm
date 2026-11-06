@@ -1,0 +1,78 @@
+.monitor-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.sensor-card {
+  padding: 16px;
+  border-top: 4px solid var(--green);
+}
+
+.sensor-card.warning {
+  border-top-color: var(--orange);
+}
+
+.sensor-card.critical {
+  border-top-color: var(--red);
+}
+
+.sensor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sensor-values {
+  margin: 16px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.sensor-values li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sensor-message {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.alert-log {
+  padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.alert-item p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.alert-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .monitor-layout {
+    grid-template-columns: 1fr;
+  }
+}

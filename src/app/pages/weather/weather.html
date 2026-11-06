@@ -1,0 +1,36 @@
+<app-page-header title="Weather & Advisory" />
+
+@if (weatherService.error()) {
+  <div class="card">
+    <app-empty-state icon="cloud_off" title="Could not load weather data" />
+  </div>
+} @else {
+  <div class="forecast">
+    @for (day of weatherService.forecast(); track day.date; let first = $first) {
+      <div class="card day-card" [class.today]="first">
+        <strong>{{ first ? 'Today' : (day.date | date: 'EEE') }}</strong>
+        <small class="text-muted">{{ day.date | date: 'dd MMM' }}</small>
+        <span class="material-symbols-outlined weather-icon">{{ icons[day.condition] }}</span>
+        <span>{{ day.condition }}</span>
+        <span class="temp">{{ day.maxTemp }}° / {{ day.minTemp }}°</span>
+        <small class="text-muted">Rain {{ day.rainChance }}%</small>
+        <small class="text-muted">Humidity {{ day.humidity }}%</small>
+        <small class="text-muted">Wind {{ day.wind }} km/h</small>
+      </div>
+    }
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">Farm Advisories</h3>
+    @for (day of weatherService.forecast(); track day.date; let first = $first) {
+      @for (advice of weatherService.getAdvisories(day); track advice.title) {
+        <div class="advice {{ advice.level }}">
+          <strong
+            >{{ first ? 'Today' : (day.date | date: 'EEE, dd MMM') }}: {{ advice.title }}</strong
+          >
+          <p>{{ advice.message }}</p>
+        </div>
+      }
+    }
+  </div>
+}

@@ -1,0 +1,163 @@
+<app-page-header title="Inventory">
+  @if (inventoryService.lowStockItems().length > 0) {
+    <span badge class="badge orange">{{ inventoryService.lowStockItems().length }} low stock</span>
+  }
+  <button class="btn btn-primary" (click)="openAddForm()">Add Item</button>
+</app-page-header>
+
+<div class="card">
+  <div class="toolbar">
+    <input
+      #searchBox
+      type="search"
+      placeholder="Search items"
+      aria-label="Search items"
+      (input)="search.set(searchBox.value)"
+    />
+    <select
+      #categoryBox
+      aria-label="Filter by category"
+      (change)="categoryFilter.set(categoryBox.value)"
+    >
+      <option value="All">All categories</option>
+      @for (category of categories; track category) {
+        <option [value]="category">{{ category }}</option>
+      }
+    </select>
+  </div>
+
+  @if (filteredItems().length > 0) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Reorder Level</th>
+            <th>Cost / Unit</th>
+            <th>Stock</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filteredItems(); track item.id) {
+            <tr [appLowStock]="item.quantity" [reorderLevel]="item.reorderLevel">
+              <td>
+                <strong>{{ item.name }}</strong>
+              </td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.quantity }} {{ item.unit }}</td>
+              <td>{{ item.reorderLevel }} {{ item.unit }}</td>
+              <td>{{ item.costPerUnit | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
+              <td>
+                <app-status-badge
+                  [label]="item.quantity <= item.reorderLevel ? 'Low Stock' : 'In Stock'"
+                />
+              </td>
+              <td class="actions">
+                <button class="btn btn-outline btn-sm" (click)="openRestock(item)">Restock</button>
+                <button class="btn btn-outline btn-sm" (click)="openEditForm(item)">Edit</button>
+                <button class="btn btn-outline btn-sm btn-delete" (click)="itemToDelete.set(item)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state
+      icon="inventory_2"
+      title="No items found"
+      message="Try changing the search or filter."
+    />
+  }
+</div>
+
+@if (showForm()) {
+  <app-modal [title]="editId() ? 'Edit Item' : 'Add Item'" (close)="showForm.set(false)">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body form-grid">
+        <div class="form-group full">
+          <label for="name">Item Name</label>
+          <input id="name" formControlName="name" />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <small class="error">Item name is required.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" formControlName="category">
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="unit">Unit</label>
+          <select id="unit" formControlName="unit">
+            @for (unit of units; track unit) {
+              <option [value]="unit">{{ unit }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" type="number" formControlName="quantity" />
+          @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+            <small class="error">Quantity cannot be negative.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="reorderLevel">Reorder Level</label>
+          <input id="reorderLevel" type="number" formControlName="reorderLevel" />
+          @if (form.controls.reorderLevel.touched && form.controls.reorderLevel.invalid) {
+            <small class="error">Reorder level cannot be negative.</small>
+          }
+        </div>
+        <div class="form-group full">
+          <label for="costPerUnit">Cost per Unit (₹)</label>
+          <input id="costPerUnit" type="number" formControlName="costPerUnit" />
+          @if (form.controls.costPerUnit.touched && form.controls.costPerUnit.invalid) {
+            <small class="error">Cost cannot be negative.</small>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (itemToRestock(); as item) {
+  <app-modal [title]="'Restock ' + item.name" (close)="itemToRestock.set(null)">
+    <div class="modal-body">
+      <p class="text-muted">Current stock: {{ item.quantity }} {{ item.unit }}</p>
+      <div class="form-group">
+        <label for="restockQuantity">Quantity to add ({{ item.unit }})</label>
+        <input id="restockQuantity" type="number" [formControl]="restockQuantity" />
+        @if (restockQuantity.touched && restockQuantity.invalid) {
+          <small class="error">Enter a quantity of at least 1.</small>
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" (click)="itemToRestock.set(null)">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="restock()">Add Stock</button>
+    </div>
+  </app-modal>
+}
+
+@if (itemToDelete(); as item) {
+  <app-confirm-dialog
+    [message]="'Delete ' + item.name + ' from inventory?'"
+    (confirm)="deleteItem()"
+    (cancel)="itemToDelete.set(null)"
+  />
+}

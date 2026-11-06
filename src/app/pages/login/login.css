@@ -1,0 +1,136 @@
+.login-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.brand-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  background: #2f6b3a;
+  color: #f3f7f3;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.brand-text {
+  max-width: 440px;
+}
+
+.brand-text h2 {
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+.brand-text p {
+  margin-top: 16px;
+  color: rgba(243, 247, 243, 0.85);
+}
+
+.brand-text ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brand-text li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-footer {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(243, 247, 243, 0.7);
+}
+
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.login-box > p {
+  margin: 4px 0 24px;
+}
+
+.password-box {
+  position: relative;
+}
+
+.password-box input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.password-box .icon-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.demo-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.demo-box strong {
+  color: var(--text);
+}
+
+.demo-box p {
+  margin: 2px 0 0;
+}
+
+@media (max-width: 899px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-panel {
+    display: none;
+  }
+}

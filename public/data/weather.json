@@ -1,0 +1,9 @@
+[
+  { "dayOffset": 0, "condition": "Sunny", "minTemp": 22, "maxTemp": 39, "rainChance": 5, "humidity": 34, "wind": 12 },
+  { "dayOffset": 1, "condition": "Windy", "minTemp": 23, "maxTemp": 36, "rainChance": 15, "humidity": 42, "wind": 24 },
+  { "dayOffset": 2, "condition": "Thunderstorm", "minTemp": 22, "maxTemp": 31, "rainChance": 80, "humidity": 82, "wind": 18 },
+  { "dayOffset": 3, "condition": "Rain", "minTemp": 21, "maxTemp": 29, "rainChance": 70, "humidity": 88, "wind": 14 },
+  { "dayOffset": 4, "condition": "Cloudy", "minTemp": 20, "maxTemp": 30, "rainChance": 40, "humidity": 72, "wind": 10 },
+  { "dayOffset": 5, "condition": "Partly Cloudy", "minTemp": 19, "maxTemp": 32, "rainChance": 15, "humidity": 55, "wind": 8 },
+  { "dayOffset": 6, "condition": "Sunny", "minTemp": 18, "maxTemp": 33, "rainChance": 5, "humidity": 40, "wind": 9 }
+]

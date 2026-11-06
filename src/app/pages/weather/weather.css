@@ -1,0 +1,41 @@
+.forecast {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.day-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 8px;
+  text-align: center;
+}
+
+.day-card.today {
+  border-color: var(--primary);
+}
+
+.weather-icon {
+  margin: 8px 0;
+  font-size: 36px;
+  color: var(--primary);
+}
+
+.temp {
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .forecast {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .forecast {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

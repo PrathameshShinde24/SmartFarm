@@ -1,0 +1,12 @@
+<app-sidebar [open]="menuOpen()" (linkClicked)="menuOpen.set(false)" />
+
+@if (menuOpen()) {
+  <div class="overlay" (click)="menuOpen.set(false)"></div>
+}
+
+<div class="main">
+  <app-topbar [title]="pageTitle()" (menuClick)="menuOpen.set(!menuOpen())" (logout)="logout()" />
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

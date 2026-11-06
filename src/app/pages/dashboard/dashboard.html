@@ -1,0 +1,71 @@
+<div class="stats-grid">
+  <app-stat-card
+    label="Fields"
+    [value]="fieldService.fields().length"
+    [note]="fieldService.totalArea() + ' acres'"
+  />
+  <app-stat-card label="Active Crops" [value]="cropService.activeCrops().length" />
+  <app-stat-card label="Tasks Due Today" [value]="taskService.todayTasks().length" />
+  <app-stat-card label="Overdue Tasks" [value]="taskService.overdueTasks().length" color="red" />
+  <app-stat-card
+    label="Low Stock Items"
+    [value]="inventoryService.lowStockItems().length"
+    color="red"
+  />
+  <app-stat-card
+    label="Net Profit This Month"
+    [value]="(thisMonth().profit | currency: 'INR' : 'symbol' : '1.0-0') ?? ''"
+    [color]="thisMonth().profit >= 0 ? 'green' : 'red'"
+  />
+</div>
+
+<div class="two-columns equal">
+  <div class="card">
+    <h3 class="card-title">Crop Area (acres)</h3>
+    <div class="chart-box">
+      <canvas #cropChart></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="card-title">Income vs Expenses</h3>
+    <div class="chart-box">
+      <canvas #financeChart></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="three-columns">
+  <div class="card padded">
+    <h3>Alerts</h3>
+    @for (alert of alerts(); track alert.text) {
+      <a class="list-row" [routerLink]="alert.link">{{ alert.text }}</a>
+    } @empty {
+      <p class="text-muted">No alerts.</p>
+    }
+  </div>
+
+  <div class="card padded">
+    <h3>Today's Tasks</h3>
+    @for (task of taskService.todayTasks(); track task.id) {
+      <div class="list-row">
+        {{ task.title }}
+        <div class="text-muted small">{{ fieldService.getName(task.fieldId) }}</div>
+      </div>
+    } @empty {
+      <p class="text-muted">No tasks due today.</p>
+    }
+  </div>
+
+  <div class="card padded">
+    <h3>Today's Weather</h3>
+    @if (todayWeather(); as day) {
+      <p class="weather-temp">{{ day.maxTemp }}°C</p>
+      <p class="text-muted">{{ day.condition }} · Rain {{ day.rainChance }}%</p>
+      <div class="advice {{ weatherService.getAdvisories(day)[0].level }}">
+        {{ weatherService.getAdvisories(day)[0].title }}
+      </div>
+    } @else {
+      <p class="text-muted">Loading...</p>
+    }
+  </div>
+</div>

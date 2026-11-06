@@ -1,0 +1,59 @@
+<app-page-header title="Settings" />
+
+@if (savedMessage()) {
+  <div class="alert success">{{ savedMessage() }}</div>
+}
+
+<div class="two-columns equal">
+  <div class="card padded">
+    <h3>Farm Profile</h3>
+    <form [formGroup]="form" (ngSubmit)="saveProfile()">
+      <div class="form-group">
+        <label for="farmName">Farm Name</label>
+        <input id="farmName" formControlName="farmName" />
+        @if (form.controls.farmName.touched && form.controls.farmName.invalid) {
+          <small class="error">Farm name is required.</small>
+        }
+      </div>
+      <div class="form-group">
+        <label for="ownerName">Owner Name</label>
+        <input id="ownerName" formControlName="ownerName" />
+        @if (form.controls.ownerName.touched && form.controls.ownerName.invalid) {
+          <small class="error">Owner name is required.</small>
+        }
+      </div>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+
+  <div>
+    <div class="card padded">
+      <h3>Theme</h3>
+      <p class="text-muted">
+        Current theme: {{ settingsService.settings().theme === 'dark' ? 'Dark' : 'Light' }}
+      </p>
+      <button class="btn btn-outline" (click)="settingsService.toggleTheme()">
+        Switch to {{ settingsService.settings().theme === 'dark' ? 'light' : 'dark' }} theme
+      </button>
+    </div>
+
+    <div class="card padded">
+      <h3>Demo Data</h3>
+      <p class="text-muted">
+        Restore all fields, crops, tasks, inventory, workers and transactions to the original demo
+        data.
+      </p>
+      <button class="btn btn-danger" (click)="showResetConfirm.set(true)">Reset Demo Data</button>
+    </div>
+  </div>
+</div>
+
+@if (showResetConfirm()) {
+  <app-confirm-dialog
+    title="Reset demo data?"
+    message="All your changes will be lost. This cannot be undone."
+    confirmText="Reset"
+    (confirm)="resetData()"
+    (cancel)="showResetConfirm.set(false)"
+  />
+}

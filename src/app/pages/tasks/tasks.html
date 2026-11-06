@@ -1,0 +1,149 @@
+<app-page-header title="Tasks & Operations">
+  <button class="btn btn-primary" (click)="openAddForm()">Add Task</button>
+</app-page-header>
+
+<div class="card">
+  <div class="tabs">
+    @for (tab of tabs; track tab) {
+      <button class="tab" [class.active]="activeTab() === tab" (click)="activeTab.set(tab)">
+        {{ tab }} ({{ countFor(tab) }})
+      </button>
+    }
+  </div>
+
+  @if (filteredTasks().length > 0) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Field / Worker</th>
+            <th>Due Date</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (task of filteredTasks(); track task.id) {
+            <tr [class.overdue]="taskService.isOverdue(task)">
+              <td>
+                <strong>{{ task.title }}</strong>
+              </td>
+              <td>
+                {{ fieldService.getName(task.fieldId) }}
+                <div class="text-muted small">{{ workerService.getName(task.workerId) }}</div>
+              </td>
+              <td class="nowrap">
+                {{ task.dueDate | date }}
+                @if (task.status !== 'Done') {
+                  <div class="small" [class.text-danger]="taskService.isOverdue(task)">
+                    {{ task.dueDate | daysLeft }}
+                  </div>
+                }
+              </td>
+              <td><app-status-badge [label]="task.priority" /></td>
+              <td><app-status-badge [label]="task.status" /></td>
+              <td class="actions">
+                @if (task.status !== 'Done') {
+                  <button class="btn btn-outline btn-sm" (click)="taskService.markDone(task.id)">
+                    Done
+                  </button>
+                }
+                <button class="btn btn-outline btn-sm" (click)="openEditForm(task)">Edit</button>
+                <button class="btn btn-outline btn-sm btn-delete" (click)="taskToDelete.set(task)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state icon="task_alt" title="No tasks here" />
+  }
+</div>
+
+@if (showForm()) {
+  <app-modal [title]="editId() ? 'Edit Task' : 'Add Task'" (close)="showForm.set(false)">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body form-grid">
+        <div class="form-group full">
+          <label for="title">Title</label>
+          <input id="title" formControlName="title" />
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <small class="error">Title is required (minimum 3 characters).</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" formControlName="type">
+            @for (type of types; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fieldId">Field</label>
+          <select id="fieldId" formControlName="fieldId">
+            <option value="">Select field</option>
+            @for (field of fieldService.fields(); track field.id) {
+              <option [value]="field.id">{{ field.name }}</option>
+            }
+          </select>
+          @if (form.controls.fieldId.touched && form.controls.fieldId.invalid) {
+            <small class="error">Please select a field.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="workerId">Assigned Worker</label>
+          <select id="workerId" formControlName="workerId">
+            <option value="">Select worker</option>
+            @for (worker of workerService.workers(); track worker.id) {
+              <option [value]="worker.id">{{ worker.name }}</option>
+            }
+          </select>
+          @if (form.controls.workerId.touched && form.controls.workerId.invalid) {
+            <small class="error">Please assign a worker.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="dueDate">Due Date</label>
+          <input id="dueDate" type="date" formControlName="dueDate" />
+          @if (form.controls.dueDate.touched && form.controls.dueDate.invalid) {
+            <small class="error">Due date is required.</small>
+          }
+        </div>
+        <div class="form-group">
+          <label for="priority">Priority</label>
+          <select id="priority" formControlName="priority">
+            @for (priority of priorities; track priority) {
+              <option [value]="priority">{{ priority }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" formControlName="status">
+            @for (status of statuses; track status) {
+              <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (taskToDelete(); as task) {
+  <app-confirm-dialog
+    [message]="'Delete task ' + task.title + '?'"
+    (confirm)="deleteTask()"
+    (cancel)="taskToDelete.set(null)"
+  />
+}

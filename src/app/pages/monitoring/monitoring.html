@@ -1,0 +1,79 @@
+<app-page-header title="Smart Monitoring" />
+
+<div class="monitor-layout">
+  <div class="card-grid">
+    @for (reading of sensorService.readings(); track reading.fieldId) {
+      @let status = sensorService.getStatus(reading);
+      <div
+        class="card sensor-card"
+        [class.warning]="status === 'Warning'"
+        [class.critical]="status === 'Critical'"
+      >
+        <div class="sensor-header">
+          <h3>{{ reading.fieldName }}</h3>
+          <app-status-badge [label]="status" />
+        </div>
+
+        <ul class="sensor-values">
+          <li>
+            Soil Moisture <strong>{{ reading.moisture }}%</strong>
+          </li>
+          <li>
+            Soil Temperature <strong>{{ reading.temperature }}°C</strong>
+          </li>
+          <li>
+            Air Humidity <strong>{{ reading.humidity }}%</strong>
+          </li>
+          <li>
+            Soil pH <strong>{{ reading.ph }}</strong>
+          </li>
+        </ul>
+
+        <p class="sensor-message">
+          @switch (status) {
+            @case ('Critical') {
+              Needs immediate attention.
+            }
+            @case ('Warning') {
+              Some values are outside the normal range.
+            }
+            @default {
+              All values are normal.
+            }
+          }
+        </p>
+
+        <button
+          class="btn btn-full"
+          [class.btn-primary]="!reading.irrigating"
+          [class.btn-outline]="reading.irrigating"
+          (click)="sensorService.toggleIrrigation(reading.fieldId)"
+        >
+          {{ reading.irrigating ? 'Stop Irrigation' : 'Start Irrigation' }}
+        </button>
+      </div>
+    } @empty {
+      <div class="card">
+        <app-empty-state icon="sensors_off" title="No active fields" />
+      </div>
+    }
+  </div>
+
+  <div class="card alert-log">
+    <h3>Alert Log</h3>
+    @for (alert of sensorService.alerts(); track $index) {
+      <div class="alert-item">
+        <div>
+          <strong>{{ alert.fieldName }}</strong>
+          <p>{{ alert.message }}</p>
+        </div>
+        <div class="alert-meta">
+          <app-status-badge [label]="alert.status" />
+          <small>{{ alert.time | date: 'HH:mm:ss' }}</small>
+        </div>
+      </div>
+    } @empty {
+      <p class="text-muted">No alerts yet. Changes in sensor status will appear here.</p>
+    }
+  </div>
+</div>
