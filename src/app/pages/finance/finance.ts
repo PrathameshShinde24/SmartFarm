@@ -124,7 +124,7 @@ export class Finance implements OnDestroy {
       category: t.category,
       amount: t.amount,
       date: t.date,
-      fieldId: t.fieldId,
+      fieldId: t.fieldId ?? '',
       note: t.note,
     });
     this.showForm.set(true);
@@ -135,11 +135,13 @@ export class Finance implements OnDestroy {
       this.form.markAllAsTouched();
       return;
     }
+    const { fieldId, ...rest } = this.form.getRawValue();
+    const transaction = fieldId ? { ...rest, fieldId } : rest;
     const id = this.editId();
     if (id) {
-      this.financeService.update(id, this.form.getRawValue());
+      this.financeService.update(id, transaction);
     } else {
-      this.financeService.add(this.form.getRawValue());
+      this.financeService.add(transaction);
     }
     this.showForm.set(false);
   }

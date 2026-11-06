@@ -134,7 +134,9 @@
 
 @if (fieldToDelete(); as field) {
   <app-confirm-dialog
-    [message]="'Delete field ' + field.name + '?'"
+    [message]="
+      'Delete field ' + field.name + '? Its crops, tasks and transactions will also be deleted.'
+    "
     (confirm)="deleteField()"
     (cancel)="fieldToDelete.set(null)"
   />

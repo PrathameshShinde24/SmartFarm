@@ -6,7 +6,7 @@
 
 Many small and medium farms in India are still managed using paper registers, phone calls and memory. A farmer growing crops like sugarcane, onion, pomegranate and cotton on different plots has to remember which crop is in which field, when it will be ready for harvest, which worker is doing which job, how much fertilizer or pesticide is left, and how much money was spent and earned. Because this information is scattered, tasks get missed, stock runs out at the wrong time and the farmer does not have a clear idea of profit or loss.
 
-SmartFarm brings all this information into one web application, with a dashboard that shows what needs attention today.
+SmartFarm brings all this information into one web application, with a dashboard that shows what needs attention today. The farm data is stored in a JSON database (`db.json`) served by json-server, and the Angular app reads and saves it through a REST API using HttpClient.
 
 ## 2. Objectives
 
@@ -18,7 +18,8 @@ SmartFarm brings all this information into one web application, with a dashboard
 6. Manage workers and see how many open tasks each worker has.
 7. Record income and expenses and show monthly profit.
 8. Load a weather forecast and give simple farm advice.
-9. Use modern Angular features such as standalone components, signals, lazy loading, guards, reactive forms, custom pipes and directives, and HttpClient.
+9. Store the data in a JSON database and perform add, view, edit and delete operations through a REST API.
+10. Use modern Angular features such as standalone components, signals, lazy loading, guards, reactive forms, custom pipes and directives, and HttpClient.
 
 ## 3. Module-wise Description
 
@@ -42,7 +43,24 @@ SmartFarm brings all this information into one web application, with a dashboard
 
 **Weather & Advisory** – 7-day forecast loaded from `public/data/weather.json` using HttpClient. Advice is generated using simple rules: rain chance above 60% → postpone spraying and irrigation; temperature above 38°C → irrigate in the evening; wind above 20 km/h → avoid pesticide spraying.
 
-**Settings** – Change farm name and owner name (shown in the top bar), switch between light and dark theme, and reset demo data.
+**Settings** – Change farm name and owner name (shown in the top bar), switch between light and dark theme, and reset demo data. Reset first deletes the linked records (crops, tasks, transactions), then fields, workers and inventory, and then adds the demo data again through the API.
+
+## Database (json-server)
+
+The data is stored in `db.json` in the project root and served by json-server on port 3000. Start it with `npm run server` (`json-server db.json --port 3000`) in one terminal and the Angular app with `npm start` (`ng serve`) in another.
+
+| Collection | URL | Records in demo data |
+| --- | --- | --- |
+| fields | http://localhost:3000/fields | 5 |
+| crops | http://localhost:3000/crops | 6 |
+| tasks | http://localhost:3000/tasks | 12 |
+| inventory | http://localhost:3000/inventory | 15 |
+| workers | http://localhost:3000/workers | 6 |
+| transactions | http://localhost:3000/transactions | 25 |
+
+Every service uses `GET` to load data, `POST` to add, `PUT` to edit and `DELETE` to remove a record. The services keep the loaded data in signals, so the pages update as soon as a request finishes.
+
+json-server treats properties ending in `Id` as links to other collections. When a field is deleted, its crops, tasks and transactions are deleted too, and when a worker is deleted, their tasks are deleted. The app reloads those lists after such a delete. General transactions (not linked to a field) leave out `fieldId` completely, so they are not affected.
 
 ## 4. Data Models
 
@@ -60,7 +78,7 @@ All interfaces are in `src/app/core/models/`. Dates are stored as strings in `yy
 
 **Worker** – id, name, role (Supervisor / Field Worker / Tractor Operator / Sprayer), phone, dailyWage, status (Active / On Leave)
 
-**Transaction** – id, type (Income / Expense), category (Seeds / Fertilizer / Labour / Equipment / Fuel / Crop Sale / Subsidy / Other), amount, date, fieldId (empty for general), note
+**Transaction** – id, type (Income / Expense), category (Seeds / Fertilizer / Labour / Equipment / Fuel / Crop Sale / Subsidy / Other), amount, date, fieldId (optional – left out for general transactions), note
 
 **SensorReading** – fieldId, fieldName, moisture, temperature, humidity, ph, irrigating
 
@@ -83,23 +101,25 @@ All interfaces are in `src/app/core/models/`. Dates are stored as strings in `yy
 | Lazy loading (loadComponent) | `app.routes.ts` – every page is lazy loaded |
 | Route guard (functional) | `core/guards/auth-guard.ts` |
 | routerLinkActive | `layout/sidebar/sidebar.html` |
-| Services | `core/services/` – auth, field, crop, task, inventory, worker, finance, sensor, weather, settings, storage |
+| Services | `core/services/` – auth, field, crop, task, inventory, worker, finance, sensor, weather, settings, storage; API URL and helpers in `core/services/api.ts` |
 | Dependency injection with inject() | All services and pages, e.g. `pages/tasks/tasks.ts` |
 | Signals | All services, e.g. `core/services/task.service.ts`; page state like `showForm` and `search` in `pages/fields/fields.ts` |
 | computed() | `core/services/task.service.ts` (overdueTasks, todayTasks), `core/services/inventory.service.ts` (lowStockItems), `pages/finance/finance.ts` (summary) |
-| effect() | `pages/finance/finance.ts` – updates the chart when the month changes |
+| effect() | `pages/finance/finance.ts` and `pages/dashboard/dashboard.ts` – update the charts when data changes; `core/services/sensor.service.ts` – adds sensor cards when fields load |
 | Reactive forms | `pages/login/login.ts` and every page with an add/edit form, e.g. `pages/workers/workers.ts` |
 | Validation | Built-in validators (required, email, min, minLength, pattern) in all forms; phone pattern in `pages/workers/workers.ts` |
 | Custom validator | `harvestAfterSowing` in `pages/crops/crops.ts` |
 | Custom pipe | `shared/pipes/days-left-pipe.ts`, used in `pages/crops/crops.html` and `pages/tasks/tasks.html` |
 | Built-in pipes | CurrencyPipe (INR) and DatePipe, e.g. `pages/finance/finance.html` |
 | Custom directive | `shared/directives/low-stock.ts`, used in `pages/inventory/inventory.html` |
-| HttpClient | `core/services/weather.service.ts` |
+| HttpClient (GET, POST, PUT, DELETE) | All data services, e.g. `core/services/field.service.ts`; weather data in `core/services/weather.service.ts` |
+| RxJS (forkJoin, concatMap, tap, catchError) | `pages/settings/settings.ts` (reset in order), `core/services/api.ts` |
+| json-server (mock REST API) | `db.json`, `npm run server` script in `package.json` |
 | Control flow (@if, @for, @switch, @let) | All templates; `@switch` and `@let` in `pages/monitoring/monitoring.html` |
 | Lifecycle hooks | `ngOnInit` / `ngOnDestroy` in `pages/monitoring/monitoring.ts` (start and stop sensor timer), `ngOnDestroy` in `pages/dashboard/dashboard.ts` (destroy charts) |
-| localStorage | `core/services/storage.service.ts`, used by all data services |
+| localStorage | `core/services/storage.service.ts`, used by `auth.service.ts` (login session) and `settings.service.ts` (farm profile and theme) |
 | Chart.js | `pages/dashboard/dashboard.ts`, `pages/finance/finance.ts` |
-| Unit tests | `core/guards/auth-guard.spec.ts`, `core/services/task.service.spec.ts`, `core/services/inventory.service.spec.ts`, `app.spec.ts` |
+| Unit tests | `core/guards/auth-guard.spec.ts`, `core/services/task.service.spec.ts` and `core/services/inventory.service.spec.ts` (HTTP calls tested with HttpTestingController), `app.spec.ts` |
 
 ## 6. Screens to Screenshot
 
@@ -126,10 +146,15 @@ All interfaces are in `src/app/core/models/`. Dates are stored as strings in `yy
 21. Dark theme
 22. Mobile view with the menu open
 23. Page not found
+24. VS Code terminal 1 running `npm run server` (json-server)
+25. VS Code terminal 2 running `npm start` (ng serve)
+26. `db.json` open in VS Code
+27. json-server API in the browser, for example http://localhost:3000/fields
 
 ## 7. Limitations
 
-- There is no backend. Data is stored only in the browser's localStorage, so it is lost if browser data is cleared and cannot be shared between devices.
+- json-server is a mock backend for development. It has no real security, validation or user accounts, and it must be running for the app to show data.
+- Deleting a field or worker also deletes linked records because of how json-server handles `Id` properties.
 - Login is a mock with one fixed demo account. There are no user roles.
 - Sensor readings are simulated using random values and are not saved.
 - Weather data comes from a static JSON file, not a live weather service.
@@ -139,7 +164,7 @@ All interfaces are in `src/app/core/models/`. Dates are stored as strings in `yy
 ## 8. Future Scope
 
 - **Real IoT sensors** – connect actual soil and weather sensors and control irrigation pumps automatically.
-- **Backend API** – add a server and database with real user accounts and roles for owner, supervisor and workers.
+- **Backend API** – replace json-server with a real backend (for example Node.js or Spring Boot) and a database such as MySQL or MongoDB, with real user accounts and roles for owner, supervisor and workers.
 - **ML crop disease detection** – upload a photo of a leaf and detect diseases using a machine learning model.
 - **Mobile app** – a mobile app for workers to see and update their tasks in the field.
 - **Multilingual support** – Marathi, Hindi and other regional languages.

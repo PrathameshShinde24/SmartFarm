@@ -78,7 +78,7 @@ export class Workers {
   deleteWorker(): void {
     const worker = this.workerToDelete();
     if (worker) {
-      this.workerService.delete(worker.id);
+      this.workerService.delete(worker.id, () => this.taskService.load());
     }
     this.workerToDelete.set(null);
   }

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { SensorAlert, SensorReading, SensorStatus } from '../models';
 import { FieldService } from './field.service';
 
@@ -18,7 +18,10 @@ export class SensorService {
   alerts = signal<SensorAlert[]>([]);
 
   constructor() {
-    this.loadFields();
+    effect(() => {
+      this.fieldService.activeFields();
+      untracked(() => this.loadFields());
+    });
   }
 
   start(): void {

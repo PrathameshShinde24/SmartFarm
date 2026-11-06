@@ -4,6 +4,7 @@ import {
   OnDestroy,
   afterNextRender,
   computed,
+  effect,
   inject,
   viewChild,
 } from '@angular/core';
@@ -41,7 +42,8 @@ export class Dashboard implements OnDestroy {
 
   cropChartCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('cropChart');
   financeChartCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('financeChart');
-  private charts: Chart[] = [];
+  private cropChart: Chart | null = null;
+  private financeChart: Chart | null = null;
 
   thisMonth = computed(() => this.financeService.getSummary(today().slice(0, 7)));
   todayWeather = computed(() => this.weatherService.forecast()[0]);
@@ -63,19 +65,7 @@ export class Dashboard implements OnDestroy {
     return list;
   });
 
-  constructor() {
-    this.weatherService.load();
-    afterNextRender(() => {
-      this.createCropChart();
-      this.createFinanceChart();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.charts.forEach((chart) => chart.destroy());
-  }
-
-  private createCropChart(): void {
+  cropArea = computed(() => {
     const area: Record<string, number> = {};
     const activeCrops = this.cropService.activeCrops();
     for (const crop of activeCrops) {
@@ -85,48 +75,70 @@ export class Dashboard implements OnDestroy {
         area[crop.crop] = (area[crop.crop] ?? 0) + field.area / cropsInSameField;
       }
     }
+    return area;
+  });
 
-    const chart = new Chart(this.cropChartCanvas().nativeElement, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(area),
-        datasets: [{ data: Object.values(area), backgroundColor: CHART_COLORS, borderWidth: 0 }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'right' } },
-      },
+  months = lastMonths(6);
+  monthlySummary = computed(() => this.months.map((m) => this.financeService.getSummary(m)));
+
+  constructor() {
+    this.weatherService.load();
+
+    afterNextRender(() => {
+      this.cropChart = new Chart(this.cropChartCanvas().nativeElement, {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{ data: [], backgroundColor: CHART_COLORS, borderWidth: 0 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right' } },
+        },
+      });
+
+      this.financeChart = new Chart(this.financeChartCanvas().nativeElement, {
+        type: 'bar',
+        data: {
+          labels: this.months.map((m) => monthLabel(m)),
+          datasets: [
+            { label: 'Income', data: [], backgroundColor: CHART_COLORS[0] },
+            { label: 'Expenses', data: [], backgroundColor: CHART_COLORS[1] },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+
+      this.updateCharts();
     });
-    this.charts.push(chart);
+
+    effect(() => {
+      this.cropArea();
+      this.monthlySummary();
+      this.updateCharts();
+    });
   }
 
-  private createFinanceChart(): void {
-    const months = lastMonths(6);
-    const summaries = months.map((m) => this.financeService.getSummary(m));
+  ngOnDestroy(): void {
+    this.cropChart?.destroy();
+    this.financeChart?.destroy();
+  }
 
-    const chart = new Chart(this.financeChartCanvas().nativeElement, {
-      type: 'bar',
-      data: {
-        labels: months.map((m) => monthLabel(m)),
-        datasets: [
-          {
-            label: 'Income',
-            data: summaries.map((s) => s.income),
-            backgroundColor: CHART_COLORS[0],
-          },
-          {
-            label: 'Expenses',
-            data: summaries.map((s) => s.expense),
-            backgroundColor: CHART_COLORS[1],
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    });
-    this.charts.push(chart);
+  private updateCharts(): void {
+    const area = this.cropArea();
+    const summary = this.monthlySummary();
+
+    if (this.cropChart) {
+      this.cropChart.data.labels = Object.keys(area);
+      this.cropChart.data.datasets[0].data = Object.values(area);
+      this.cropChart.update();
+    }
+
+    if (this.financeChart) {
+      this.financeChart.data.datasets[0].data = summary.map((s) => s.income);
+      this.financeChart.data.datasets[1].data = summary.map((s) => s.expense);
+      this.financeChart.update();
+    }
   }
 }

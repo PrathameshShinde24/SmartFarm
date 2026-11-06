@@ -8,7 +8,10 @@ import {
   IrrigationType,
   SOIL_TYPES,
 } from '../../core/models';
+import { CropService } from '../../core/services/crop.service';
 import { FieldService } from '../../core/services/field.service';
+import { FinanceService } from '../../core/services/finance.service';
+import { TaskService } from '../../core/services/task.service';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { Modal } from '../../shared/components/modal/modal';
@@ -22,6 +25,9 @@ import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 })
 export class Fields {
   private fieldService = inject(FieldService);
+  private cropService = inject(CropService);
+  private taskService = inject(TaskService);
+  private financeService = inject(FinanceService);
   private fb = inject(NonNullableFormBuilder);
 
   soilTypes = SOIL_TYPES;
@@ -91,7 +97,11 @@ export class Fields {
   deleteField(): void {
     const field = this.fieldToDelete();
     if (field) {
-      this.fieldService.delete(field.id);
+      this.fieldService.delete(field.id, () => {
+        this.cropService.load();
+        this.taskService.load();
+        this.financeService.load();
+      });
     }
     this.fieldToDelete.set(null);
   }

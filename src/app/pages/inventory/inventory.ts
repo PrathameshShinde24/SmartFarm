@@ -112,7 +112,7 @@ export class Inventory {
       this.restockQuantity.markAsTouched();
       return;
     }
-    this.inventoryService.restock(item.id, this.restockQuantity.value);
+    this.inventoryService.restock(item, this.restockQuantity.value);
     this.itemToRestock.set(null);
   }
 

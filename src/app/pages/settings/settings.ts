@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { concatMap, forkJoin } from 'rxjs';
 import { CropService } from '../../core/services/crop.service';
 import { FieldService } from '../../core/services/field.service';
 import { FinanceService } from '../../core/services/finance.service';
@@ -46,19 +47,25 @@ export class Settings {
   }
 
   resetData(): void {
-    this.fieldService.reset();
-    this.cropService.reset();
-    this.taskService.reset();
-    this.inventoryService.reset();
-    this.workerService.reset();
-    this.financeService.reset();
-    this.sensorService.reset();
-    this.settingsService.reset();
-    this.form.setValue({
-      farmName: this.settingsService.settings().farmName,
-      ownerName: this.settingsService.settings().ownerName,
-    });
+    const linkedData = [this.cropService, this.taskService, this.financeService];
+    const mainData = [this.fieldService, this.workerService, this.inventoryService];
+    const allData = [...linkedData, ...mainData];
+
+    forkJoin(linkedData.map((service) => service.clearAll()))
+      .pipe(
+        concatMap(() => forkJoin(mainData.map((service) => service.clearAll()))),
+        concatMap(() => forkJoin(allData.map((service) => service.addDemoData()))),
+      )
+      .subscribe(() => {
+        this.sensorService.reset();
+        this.settingsService.reset();
+        this.form.setValue({
+          farmName: this.settingsService.settings().farmName,
+          ownerName: this.settingsService.settings().ownerName,
+        });
+        this.savedMessage.set('Demo data has been reset.');
+      });
+
     this.showResetConfirm.set(false);
-    this.savedMessage.set('Demo data has been reset.');
   }
 }

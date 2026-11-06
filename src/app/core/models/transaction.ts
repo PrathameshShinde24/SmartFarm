@@ -9,7 +9,7 @@ export interface Transaction {
   category: TransactionCategory;
   amount: number;
   date: string;
-  fieldId: string;
+  fieldId?: string;
   note: string;
 }
 

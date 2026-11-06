@@ -2,7 +2,7 @@
 
 **SmartFarm** is an Angular web application for managing daily farm work. It keeps fields, crops, tasks, workers, inventory, money and weather in one place, and shows the important things on a dashboard.
 
-This is a frontend-only project. There is no backend. Demo data for a farm in Maharashtra is loaded on first use and saved in the browser's localStorage. Dates in the demo data are calculated from today's date, so the data always looks current.
+The app uses **json-server** as a mock backend. All farm data (fields, crops, tasks, inventory, workers and transactions) is stored in `db.json` and read and saved through a REST API at `http://localhost:3000` using Angular's HttpClient. The login session and app settings are saved in the browser's localStorage. The demo data is for a farm in Maharashtra.
 
 Units used: Indian Rupee (₹), acres for area, quintals for yield, dates as `dd MMM yyyy`.
 
@@ -46,7 +46,8 @@ Units used: Indian Rupee (₹), acres for area, quintals for yield, dates as `dd
 - TypeScript (strict mode)
 - Reactive Forms
 - Angular Router with lazy loading
-- HttpClient
+- HttpClient and RxJS
+- json-server (mock REST API using `db.json`)
 - Chart.js
 - CSS with CSS variables
 - Material Symbols icons and Inter font (Google Fonts)
@@ -55,12 +56,13 @@ Units used: Indian Rupee (₹), acres for area, quintals for yield, dates as `dd
 ## Folder Structure
 
 ```
+db.json          database used by json-server
 src/app/
   core/
-    data/        demo data
+    data/        demo data (used by "Reset Demo Data")
     guards/      auth guard
     models/      interfaces
-    services/    one service per module
+    services/    one service per module, API calls with HttpClient
     utils/       date helper functions
   shared/
     components/  stat-card, page-header, status-badge, empty-state, modal, confirm-dialog
@@ -80,13 +82,38 @@ Install packages:
 npm install
 ```
 
-Start the development server:
+The app needs two terminals running at the same time.
+
+**Terminal 1** – start the JSON database (json-server) on port 3000:
+
+```bash
+npm run server
+```
+
+This runs `json-server db.json --port 3000`. The API is available at http://localhost:3000 (for example http://localhost:3000/fields).
+
+**Terminal 2** – start the Angular app:
 
 ```bash
 npm start
 ```
 
-Open http://localhost:4200 in the browser.
+This runs `ng serve`. Open http://localhost:4200 in the browser.
+
+## API Endpoints
+
+| Resource | URL |
+| --- | --- |
+| Fields | http://localhost:3000/fields |
+| Crops | http://localhost:3000/crops |
+| Tasks | http://localhost:3000/tasks |
+| Inventory | http://localhost:3000/inventory |
+| Workers | http://localhost:3000/workers |
+| Transactions | http://localhost:3000/transactions |
+
+Each resource supports `GET` (list), `POST` (add), `PUT` (edit) and `DELETE` (delete).
+
+Note: json-server automatically deletes linked records. Deleting a field also deletes its crops, tasks and transactions, and deleting a worker also deletes their tasks.
 
 Build for production:
 
@@ -105,4 +132,4 @@ npm test -- --watch=false
 - Email: `admin@smartfarm.com`
 - Password: `farm123`
 
-To go back to the original demo data, open **Settings → Reset Demo Data**.
+To go back to the original demo data, open **Settings → Reset Demo Data**. This replaces the data in `db.json` with fresh demo data, with dates calculated from today.

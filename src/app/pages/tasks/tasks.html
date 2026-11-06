@@ -46,7 +46,7 @@
               <td><app-status-badge [label]="task.status" /></td>
               <td class="actions">
                 @if (task.status !== 'Done') {
-                  <button class="btn btn-outline btn-sm" (click)="taskService.markDone(task.id)">
+                  <button class="btn btn-outline btn-sm" (click)="taskService.markDone(task)">
                     Done
                   </button>
                 }

@@ -99,7 +99,7 @@
 
 @if (workerToDelete(); as worker) {
   <app-confirm-dialog
-    [message]="'Remove ' + worker.name + ' from workers?'"
+    [message]="'Remove ' + worker.name + '? Their tasks will also be deleted.'"
     confirmText="Remove"
     (confirm)="deleteWorker()"
     (cancel)="workerToDelete.set(null)"

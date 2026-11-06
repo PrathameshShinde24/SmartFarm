@@ -1,29 +1,53 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { seedCrops } from '../data/seed-data';
 import { Crop } from '../models';
 import { createId, daysBetween, today } from '../utils/helpers';
-import { StorageService } from './storage.service';
+import { Observable, tap } from 'rxjs';
+import { API_URL, addAll, deleteAll } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class CropService {
-  private storage = inject(StorageService);
+  private http = inject(HttpClient);
+  private url = `${API_URL}/crops`;
 
-  crops = signal<Crop[]>(this.storage.get('crops', seedCrops()));
+  crops = signal<Crop[]>([]);
   activeCrops = computed(() => this.crops().filter((c) => c.stage !== 'Harvested'));
 
-  add(crop: Omit<Crop, 'id'>): void {
-    this.crops.update((list) => [{ ...crop, id: createId() }, ...list]);
-    this.save();
+  constructor() {
+    this.load();
   }
 
-  update(id: string, crop: Omit<Crop, 'id'>): void {
-    this.crops.update((list) => list.map((c) => (c.id === id ? { ...crop, id } : c)));
-    this.save();
+  load(): void {
+    this.http.get<Crop[]>(this.url).subscribe((data) => this.crops.set(data));
+  }
+
+  add(item: Omit<Crop, 'id'>): void {
+    this.http
+      .post<Crop>(this.url, { ...item, id: createId() })
+      .subscribe((saved) => this.crops.update((list) => [saved, ...list]));
+  }
+
+  update(id: string, item: Omit<Crop, 'id'>): void {
+    this.http
+      .put<Crop>(`${this.url}/${id}`, { ...item, id })
+      .subscribe((saved) =>
+        this.crops.update((list) => list.map((c) => (c.id === id ? saved : c))),
+      );
   }
 
   delete(id: string): void {
-    this.crops.update((list) => list.filter((c) => c.id !== id));
-    this.save();
+    this.http
+      .delete(`${this.url}/${id}`)
+      .subscribe(() => this.crops.update((list) => list.filter((c) => c.id !== id)));
+  }
+
+  clearAll(): Observable<unknown> {
+    return deleteAll(this.http, this.url, this.crops());
+  }
+
+  addDemoData(): Observable<unknown> {
+    return addAll(this.http, this.url, seedCrops()).pipe(tap(() => this.load()));
   }
 
   getProgress(crop: Crop): number {
@@ -36,14 +60,5 @@ export class CropService {
       return 100;
     }
     return Math.min(100, Math.max(0, Math.round((daysPassed / totalDays) * 100)));
-  }
-
-  reset(): void {
-    this.crops.set(seedCrops());
-    this.save();
-  }
-
-  private save(): void {
-    this.storage.set('crops', this.crops());
   }
 }

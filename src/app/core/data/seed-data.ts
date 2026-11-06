@@ -466,7 +466,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 18500,
       date: dateInMonth(0, 1),
-      fieldId: '',
       note: 'Weekly labour wages',
     },
     {
@@ -475,7 +474,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Fuel',
       amount: 9200,
       date: dateInMonth(0, 3),
-      fieldId: '',
       note: '100 litres diesel',
     },
     {
@@ -502,7 +500,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 42000,
       date: dateInMonth(1, 28),
-      fieldId: '',
       note: 'Soybean harvest labour',
     },
     {
@@ -520,7 +517,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Fuel',
       amount: 11500,
       date: dateInMonth(1, 15),
-      fieldId: '',
       note: 'Diesel for tractor and pump',
     },
     {
@@ -529,7 +525,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 38000,
       date: dateInMonth(2, 27),
-      fieldId: '',
       note: 'Monthly labour wages',
     },
     {
@@ -556,7 +551,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Subsidy',
       amount: 2000,
       date: dateInMonth(2, 5),
-      fieldId: '',
       note: 'PM-KISAN instalment',
     },
     {
@@ -592,7 +586,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 31000,
       date: dateInMonth(3, 28),
-      fieldId: '',
       note: 'Monthly labour wages',
     },
     {
@@ -619,7 +612,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Fertilizer',
       amount: 28000,
       date: dateInMonth(4, 9),
-      fieldId: '',
       note: 'Basal dose for kharif crops',
     },
     {
@@ -628,7 +620,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 36000,
       date: dateInMonth(4, 28),
-      fieldId: '',
       note: 'Sowing and weeding labour',
     },
     {
@@ -637,7 +628,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Fuel',
       amount: 12800,
       date: dateInMonth(4, 14),
-      fieldId: '',
       note: 'Diesel for land preparation',
     },
     {
@@ -655,7 +645,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Equipment',
       amount: 18000,
       date: dateInMonth(5, 7),
-      fieldId: '',
       note: 'Tractor clutch repair',
     },
     {
@@ -664,7 +653,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Fuel',
       amount: 9600,
       date: dateInMonth(5, 22),
-      fieldId: '',
       note: 'Diesel for tractor',
     },
     {
@@ -673,7 +661,6 @@ export function seedTransactions(): Transaction[] {
       category: 'Labour',
       amount: 24000,
       date: dateInMonth(5, 28),
-      fieldId: '',
       note: 'Monthly labour wages',
     },
   ];
